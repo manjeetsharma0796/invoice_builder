@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Agent</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">Invoice Agent</a>
+    <div class="nav-links">
+      <a href="/" class="active">Upload</a>
+      <a href="/settings">Settings</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="upload-section">
+      <h1>Process Invoice</h1>
+      <p class="subtitle">Upload an invoice (PDF, JPG, PNG, WebP, TIFF) and let AI extract the data</p>
+
+      <!-- AI Provider Selector -->
+      <div class="provider-selector">
+        <div class="provider-row">
+          <div class="form-group-inline">
+            <label for="providerSelect">AI Provider</label>
+            <select id="providerSelect">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+          <div class="form-group-inline">
+            <label for="modelInput">Model</label>
+            <input type="text" id="modelInput" placeholder="e.g. gpt-4o">
+          </div>
+          <div class="test-section">
+            <button type="button" class="btn-test" id="testBtn">Test</button>
+            <div class="status-light" id="statusLight" title="Click Test to check connection">
+              <span class="light gray"></span>
+              <span class="status-text" id="statusText">Not tested</span>
+            </div>
+          </div>
+        </div>
+        <!-- Model suggestions chips -->
+        <div class="model-chips" id="modelChips"></div>
+      </div>
+
+      <form id="invoiceForm" enctype="multipart/form-data">
+        <!-- Raw Invoice Upload -->
+        <div class="upload-box" id="rawInvoiceBox">
+          <div class="upload-icon">&#128196;</div>
+          <h3>Raw Invoice *</h3>
+          <p>Drag & drop or click to upload</p>
+          <p class="file-info">PDF, JPG, PNG, WebP, TIFF — Max 10MB</p>
+          <input type="file" name="raw_invoice" id="rawInvoiceInput" 
+                 accept=".pdf,.jpg,.jpeg,.png,.webp,.tiff,.tif,.gif" required>
+          <div class="file-name" id="rawFileName"></div>
+        </div>
+
+        <!-- Optional Form Image -->
+        <div class="upload-box optional" id="formImageBox">
+          <div class="upload-icon">&#128203;</div>
+          <h3>Custom Form Template (Optional)</h3>
+          <p>Upload an image of your desired invoice layout</p>
+          <p class="file-info">If not provided, default template will be used</p>
+          <input type="file" name="form_image" id="formImageInput" 
+                 accept=".jpg,.jpeg,.png,.webp">
+          <div class="file-name" id="formFileName"></div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">
+          <span class="btn-text">Extract & Fill Invoice</span>
+          <span class="btn-loading" style="display:none;">Processing...</span>
+        </button>
+      </form>
+
+      <!-- Error display -->
+      <div class="error-box" id="errorBox" style="display:none;"></div>
+    </div>
+  </main>
+
+  <script src="/js/upload.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Result — Invoice Agent</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">Invoice Agent</a>
+    <div class="nav-links">
+      <a href="/">Upload</a>
+      <a href="/settings">Settings</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="result-section">
+      <h1>Extracted Invoice Data</h1>
+      <p class="subtitle">Invoice ID: <code><%= invoiceId %></code></p>
+
+      <div class="action-bar">
+        <a href="/api/invoice/<%= invoiceId %>/download" class="btn-primary btn-download">
+          Download Excel
+        </a>
+        <a href="/" class="btn-secondary">Process Another</a>
+      </div>
+
+      <!-- Invoice Summary -->
+      <div class="invoice-summary" id="invoiceSummary">
+        <div class="loading">Loading invoice data...</div>
+      </div>
+
+      <!-- Raw JSON -->
+      <details class="json-details">
+        <summary>View Raw JSON</summary>
+        <pre id="rawJson" class="json-block"></pre>
+      </details>
+    </div>
+  </main>
+
+  <script>
+    const invoiceId = "<%= invoiceId %>";
+  </script>
+  <script src="/js/result.js"></script>
+</body>
+</html>
