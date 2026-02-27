@@ -11,6 +11,7 @@
     <a href="/" class="nav-brand">Invoice Agent</a>
     <div class="nav-links">
       <a href="/" class="active">Upload</a>
+      <a href="/builder">Template Builder</a>
       <a href="/settings">Settings</a>
     </div>
   </nav>
@@ -43,6 +44,7 @@
         </div>
         <!-- Model suggestions chips -->
         <div class="model-chips" id="modelChips"></div>
+        <div class="chips-legend"><span class="legend-text">&#x1F7E6; Text (PDF/text invoices)</span><span class="legend-text legend-vision">&#x1F7E9; Vision (image invoices)</span></div>
       </div>
 
       <form id="invoiceForm" enctype="multipart/form-data">
@@ -57,14 +59,27 @@
           <div class="file-name" id="rawFileName"></div>
         </div>
 
-        <!-- Optional Form Image -->
+        <!-- AI Template Selection -->
+        <div class="form-group-full">
+          <label for="templateSelect">Apply AI-Generated Template (Optional)</label>
+          <div class="template-selector-container">
+            <select id="templateSelect" name="template_name">
+              <option value="">None (Use default Excel or dynamic image template below)</option>
+            </select>
+            <p class="template-help">Generated in the <a href="/builder">Template Builder</a>. Produces pixel-perfect PDF.</p>
+          </div>
+        </div>
+
+        <div class="template-divider">OR</div>
+
+        <!-- Optional Form Template -->
         <div class="upload-box optional" id="formImageBox">
           <div class="upload-icon">&#128203;</div>
           <h3>Custom Form Template (Optional)</h3>
-          <p>Upload an image of your desired invoice layout</p>
-          <p class="file-info">If not provided, default template will be used</p>
+          <p>Upload your invoice template to fill</p>
+          <p class="file-info">Image, PDF (AI reads layout) &nbsp;|&nbsp; XLSX (fills directly)</p>
           <input type="file" name="form_image" id="formImageInput" 
-                 accept=".jpg,.jpeg,.png,.webp">
+                 accept=".jpg,.jpeg,.png,.webp,.tiff,.tif,.pdf,.xlsx,.xls">
           <div class="file-name" id="formFileName"></div>
         </div>
 

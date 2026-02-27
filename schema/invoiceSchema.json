@@ -43,9 +43,12 @@
     "bill_to": {
       "type": "object",
       "properties": {
-        "name": { "type": "string", "description": "Customer / buyer name" },
+        "name":    { "type": "string", "description": "Customer / buyer name" },
         "address": { "type": "string", "description": "Customer address" },
-        "gstin": { "type": "string", "description": "Customer GSTIN / Tax ID" }
+        "gstin":   { "type": "string", "description": "Customer GSTIN / Tax ID" },
+        "pan":     { "type": "string", "description": "Customer PAN number" },
+        "phone":   { "type": "string", "description": "Customer phone number" },
+        "state":   { "type": "string", "description": "Customer state name and code" }
       }
     },
     "line_items": {
@@ -55,15 +58,30 @@
         "required": ["description", "quantity", "unit_price", "amount"],
         "properties": {
           "sl_no": { "type": "integer", "description": "Serial number" },
-          "description": { "type": "string", "description": "Item description" },
+          "description": {
+            "type": "string",
+            "description": "Item description"
+          },
           "hsn_sac": { "type": "string", "description": "HSN/SAC code" },
           "quantity": { "type": "number", "description": "Quantity" },
-          "unit": { "type": "string", "description": "Unit of measure (pcs, kg, etc.)" },
+          "unit": {
+            "type": "string",
+            "description": "Unit of measure (pcs, kg, etc.)"
+          },
           "unit_price": { "type": "number", "description": "Price per unit" },
           "discount": { "type": "number", "description": "Discount amount" },
-          "tax_rate": { "type": "number", "description": "Tax rate percentage" },
-          "tax_amount": { "type": "number", "description": "Tax amount for this item" },
-          "amount": { "type": "number", "description": "Total amount for this line" }
+          "tax_rate": {
+            "type": "number",
+            "description": "Tax rate percentage"
+          },
+          "tax_amount": {
+            "type": "number",
+            "description": "Tax amount for this item"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Total amount for this line"
+          }
         }
       }
     },
@@ -75,12 +93,49 @@
       "type": "number",
       "description": "Total discount amount"
     },
+    "sgst_amount": {
+      "type": "number",
+      "description": "State GST (SGST) total amount"
+    },
+    "cgst_amount": {
+      "type": "number",
+      "description": "Central GST (CGST) total amount"
+    },
+    "igst_amount": {
+      "type": "number",
+      "description": "Integrated GST (IGST) total amount if applicable"
+    },
+    "round_off": {
+      "type": "number",
+      "description": "Rounding adjustment amount"
+    },
+    "hsn_summary": {
+      "type": "array",
+      "description": "HSN/SAC wise tax summary table",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hsn_sac":       { "type": "string", "description": "HSN or SAC code" },
+          "taxable_value": { "type": "number", "description": "Taxable value for this HSN code" },
+          "cgst_rate":     { "type": "number", "description": "CGST rate %" },
+          "cgst_amount":   { "type": "number", "description": "CGST amount" },
+          "sgst_rate":     { "type": "number", "description": "SGST rate %" },
+          "sgst_amount":   { "type": "number", "description": "SGST amount" },
+          "igst_rate":     { "type": "number", "description": "IGST rate % if applicable" },
+          "igst_amount":   { "type": "number", "description": "IGST amount if applicable" },
+          "total_tax":     { "type": "number", "description": "Total tax for this row" }
+        }
+      }
+    },
     "tax_breakdown": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "tax_type": { "type": "string", "description": "e.g. CGST, SGST, IGST, VAT" },
+          "tax_type": {
+            "type": "string",
+            "description": "e.g. CGST, SGST, IGST, VAT"
+          },
           "rate": { "type": "number", "description": "Tax rate percentage" },
           "amount": { "type": "number", "description": "Tax amount" }
         }
@@ -96,7 +151,11 @@
     },
     "amount_in_words": {
       "type": "string",
-      "description": "Total amount in words"
+      "description": "Total amount chargeable in words (e.g. Rupees Fifteen Thousand...)"
+    },
+    "tax_amount_in_words": {
+      "type": "string",
+      "description": "Tax amount in words"
     },
     "currency": {
       "type": "string",
@@ -105,6 +164,34 @@
     "payment_terms": {
       "type": "string",
       "description": "Payment terms or conditions"
+    },
+    "delivery_note": {
+      "type": "string",
+      "description": "Delivery note number"
+    },
+    "supplier_ref": {
+      "type": "string",
+      "description": "Supplier reference number"
+    },
+    "buyer_order_no": {
+      "type": "string",
+      "description": "Buyer order number"
+    },
+    "despatch_doc_no": {
+      "type": "string",
+      "description": "Despatch document number"
+    },
+    "despatch_through": {
+      "type": "string",
+      "description": "Carrier or despatch through details"
+    },
+    "destination": {
+      "type": "string",
+      "description": "Delivery destination"
+    },
+    "terms_of_delivery": {
+      "type": "string",
+      "description": "Terms of delivery"
     },
     "bank_details": {
       "type": "object",
@@ -117,7 +204,7 @@
     },
     "notes": {
       "type": "string",
-      "description": "Additional notes or remarks"
+      "description": "Additional notes or remarks / terms and conditions"
     }
   }
 }

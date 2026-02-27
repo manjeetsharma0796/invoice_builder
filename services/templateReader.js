@@ -1,6 +1,8 @@
 const { HumanMessage } = require("@langchain/core/messages");
 const { getLLM } = require("./llm");
-const { fileToBase64 } = require("./fileHandler");
+const { fileToBase64, pdfToImageDataUri } = require("./fileHandler");
+
+const PDF_TYPES = ["application/pdf"];
 
 const TEMPLATE_READ_PROMPT = `You are an expert at analyzing invoice/form templates.
 
@@ -54,7 +56,14 @@ Rules:
  * @returns {object} form structure definition
  */
 async function readTemplateImage(filePath, mimetype) {
-  const dataUri = fileToBase64(filePath, mimetype);
+  let dataUri;
+  if (PDF_TYPES.includes(mimetype)) {
+    // PDF template: render page 1 to PNG for vision AI
+    console.log("[templateReader] PDF template detected — rendering page 1 to PNG...");
+    dataUri = await pdfToImageDataUri(filePath);
+  } else {
+    dataUri = fileToBase64(filePath, mimetype);
+  }
   const llm = getLLM();
 
   const messageContent = [

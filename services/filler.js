@@ -229,6 +229,13 @@ async function fillDynamicTemplate(invoiceData, templateStructure, outputPath) {
 
   const struct = templateStructure;
 
+  // Guard helper to ensure the AI-produced cell refs are valid
+  function isValidCell(col, row) {
+    if (!col || typeof col !== "string") return false;
+    if (!Number.isInteger(row) || row <= 0) return false;
+    return /^[A-Z]+$/i.test(col);
+  }
+
   // Title
   if (struct.title) {
     ws.getCell("A1").value = struct.title;
@@ -238,9 +245,13 @@ async function fillDynamicTemplate(invoiceData, templateStructure, outputPath) {
   // Header fields
   if (struct.header_fields) {
     for (const field of struct.header_fields) {
+      if (!isValidCell(field.col, field.row)) continue;
       const cellRef = `${field.col}${field.row}`;
       // Label in previous column
-      const labelCol = String.fromCharCode(field.col.charCodeAt(0) - 1);
+      const labelCol =
+        field.col.toUpperCase() === "A"
+          ? field.col
+          : String.fromCharCode(field.col.charCodeAt(0) - 1);
       ws.getCell(`${labelCol}${field.row}`).value = field.label + ":";
       ws.getCell(`${labelCol}${field.row}`).font = { bold: true };
 
@@ -256,6 +267,7 @@ async function fillDynamicTemplate(invoiceData, templateStructure, outputPath) {
 
     // Column headers
     for (const col of struct.line_item_columns) {
+      if (!isValidCell(col.col, startRow - 1)) continue;
       ws.getCell(`${col.col}${startRow - 1}`).value = col.label;
       ws.getCell(`${col.col}${startRow - 1}`).font = { bold: true };
     }
@@ -265,6 +277,7 @@ async function fillDynamicTemplate(invoiceData, templateStructure, outputPath) {
       invoiceData.line_items.forEach((item, idx) => {
         const row = startRow + idx;
         for (const col of struct.line_item_columns) {
+          if (!isValidCell(col.col, row)) continue;
           const value = findValue(item, col.key);
           ws.getCell(`${col.col}${row}`).value = value;
         }
@@ -275,8 +288,12 @@ async function fillDynamicTemplate(invoiceData, templateStructure, outputPath) {
   // Footer fields
   if (struct.footer_fields) {
     for (const field of struct.footer_fields) {
+      if (!isValidCell(field.col, field.row)) continue;
       const cellRef = `${field.col}${field.row}`;
-      const labelCol = String.fromCharCode(field.col.charCodeAt(0) - 1);
+      const labelCol =
+        field.col.toUpperCase() === "A"
+          ? field.col
+          : String.fromCharCode(field.col.charCodeAt(0) - 1);
       ws.getCell(`${labelCol}${field.row}`).value = field.label + ":";
       ws.getCell(`${labelCol}${field.row}`).font = { bold: true };
 
@@ -329,4 +346,123 @@ function findValue(data, key) {
   return null;
 }
 
-module.exports = { fillDefaultTemplate, fillDynamicTemplate };
+/**
+ * Fill a user-uploaded Excel template (xlsx) with invoice data.
+ * Copies the user's xlsx and writes the same fields as fillDefaultTemplate.
+ * Use this when the user provides their own .xlsx template file.
+ *
+ * @param {object} invoiceData - extracted invoice data
+ * @param {string} templatePath - path to the uploaded xlsx template
+ * @param {string} outputPath - where to save the filled Excel
+ */
+async function fillExcelTemplate(invoiceData, templatePath, outputPath) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(templatePath); // read user's own xlsx
+
+  const ws = workbook.getWorksheet(1);
+  if (!ws) {
+    throw new Error("Uploaded Excel template has no worksheets");
+  }
+
+  // Scan all cells for label-based matching
+  const labelMap = {};
+  ws.eachRow({ includeEmpty: false }, (row, rowNum) => {
+    row.eachCell({ includeEmpty: false }, (cell, colNum) => {
+      const val = String(cell.value || "").trim().toLowerCase();
+      if (val) labelMap[val] = { row: rowNum, col: colNum };
+    });
+  });
+
+  // Helper: set cell adjacent to label
+  function setCellByLabel(label, value) {
+    const pos = labelMap[label.toLowerCase()];
+    if (pos && value != null) {
+      // Write in the next column of the same row
+      const targetCell = ws.getCell(pos.row, pos.col + 1);
+      if (targetCell.value == null || String(targetCell.value).trim() === "") {
+        targetCell.value = value;
+      } else {
+        // If next cell has content, try col+2
+        ws.getCell(pos.row, pos.col + 2).value = value;
+      }
+    }
+  }
+
+  // Map common invoice field labels → data values
+  const fieldLabelMap = [
+    ["invoice number",       invoiceData.invoice_number],
+    ["invoice no",           invoiceData.invoice_number],
+    ["invoice date",         invoiceData.invoice_date],
+    ["date",                 invoiceData.invoice_date],
+    ["due date",             invoiceData.due_date],
+    ["po number",            invoiceData.purchase_order],
+    ["purchase order",       invoiceData.purchase_order],
+    ["currency",             invoiceData.currency],
+    ["vendor",               invoiceData.vendor?.name],
+    ["vendor name",          invoiceData.vendor?.name],
+    ["vendor address",       invoiceData.vendor?.address],
+    ["gstin",                invoiceData.vendor?.gstin],
+    ["phone",                invoiceData.vendor?.phone],
+    ["email",                invoiceData.vendor?.email],
+    ["bill to",              invoiceData.bill_to?.name],
+    ["subtotal",             invoiceData.subtotal],
+    ["discount",             invoiceData.discount_total],
+    ["tax",                  invoiceData.tax_amount],
+    ["total",                invoiceData.total_amount],
+    ["amount in words",      invoiceData.amount_in_words],
+    ["payment terms",        invoiceData.payment_terms],
+    ["notes",                invoiceData.notes],
+    ["bank name",            invoiceData.bank_details?.bank_name],
+    ["account number",       invoiceData.bank_details?.account_number],
+    ["ifsc",                 invoiceData.bank_details?.ifsc],
+    ["branch",               invoiceData.bank_details?.branch],
+  ];
+
+  for (const [label, value] of fieldLabelMap) {
+    setCellByLabel(label, value);
+  }
+
+  // Line items: find the header row by looking for common column headers
+  let lineItemsRow = null;
+  const lineItemHeaders = ["description", "item", "particulars", "qty", "quantity"];
+  ws.eachRow({ includeEmpty: false }, (row, rowNum) => {
+    if (lineItemsRow) return;
+    let matchCount = 0;
+    row.eachCell({ includeEmpty: false }, (cell) => {
+      const v = String(cell.value || "").toLowerCase();
+      if (lineItemHeaders.some(h => v.includes(h))) matchCount++;
+    });
+    if (matchCount >= 2) lineItemsRow = rowNum;
+  });
+
+  if (lineItemsRow && invoiceData.line_items && invoiceData.line_items.length > 0) {
+    // Find column positions for line items
+    const headerRow = ws.getRow(lineItemsRow);
+    const colMap = {};
+    headerRow.eachCell({ includeEmpty: false }, (cell, colNum) => {
+      const h = String(cell.value || "").toLowerCase();
+      if (h.includes("sl") || h.includes("no.") || h === "#") colMap.sl_no = colNum;
+      if (h.includes("desc") || h.includes("item") || h.includes("particular")) colMap.description = colNum;
+      if (h.includes("hsn") || h.includes("sac")) colMap.hsn_sac = colNum;
+      if (h.includes("qty") || h.includes("quantity")) colMap.quantity = colNum;
+      if (h.includes("rate") || h.includes("unit price") || h.includes("price")) colMap.unit_price = colNum;
+      if (h.includes("tax") || h.includes("gst") || h.includes("vat")) colMap.tax_rate = colNum;
+      if (h.includes("amount") || h.includes("total")) colMap.amount = colNum;
+    });
+    invoiceData.line_items.forEach((item, idx) => {
+      const r = lineItemsRow + 1 + idx;
+      if (colMap.sl_no)      ws.getCell(r, colMap.sl_no).value = idx + 1;
+      if (colMap.description) ws.getCell(r, colMap.description).value = item.description;
+      if (colMap.hsn_sac)    ws.getCell(r, colMap.hsn_sac).value = item.hsn_sac;
+      if (colMap.quantity)   ws.getCell(r, colMap.quantity).value = item.quantity;
+      if (colMap.unit_price) ws.getCell(r, colMap.unit_price).value = item.unit_price;
+      if (colMap.tax_rate)   ws.getCell(r, colMap.tax_rate).value = item.tax_rate;
+      if (colMap.amount)     ws.getCell(r, colMap.amount).value = item.amount;
+    });
+  }
+
+  await workbook.xlsx.writeFile(outputPath);
+  return outputPath;
+}
+
+module.exports = { fillDefaultTemplate, fillDynamicTemplate, fillExcelTemplate };
