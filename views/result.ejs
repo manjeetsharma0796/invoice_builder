@@ -30,6 +30,15 @@
                 <a href="/" class="btn-secondary">Process Another</a>
             </div>
 
+            <!-- PDF Preview (for PDF outputs) -->
+            <div class="pdf-preview-wrapper">
+                <iframe
+                    src="/api/invoice/<%= invoiceId %>/pdf"
+                    title="Invoice PDF Preview"
+                    class="pdf-preview-frame"
+                ></iframe>
+            </div>
+
             <!-- Invoice Summary -->
             <div class="invoice-summary" id="invoiceSummary">
                 <div class="loading">Loading invoice data...</div>

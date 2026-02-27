@@ -7,6 +7,7 @@ const { extractInvoice } = require("../services/extractor");
 const { getConfig } = require("../services/llm");
 const { readTemplateImage } = require("../services/templateReader");
 const { generateInvoicePdf } = require("../services/pdfTemplater");
+const { enrichInvoiceData } = require("../services/enricher");
 const { fillDefaultTemplate, fillDynamicTemplate, fillExcelTemplate } = require("../services/filler");
 const { isSupported, cleanupFile, getSupportedFormats } = require("../services/fileHandler");
 
@@ -107,6 +108,9 @@ router.post(
 
       const { template_name } = req.body;
 
+      // Step 1.5: Enrich / derive computed fields (amount_in_words, tax words, etc.)
+      const enrichedData = enrichInvoiceData(extraction.data);
+
       // Step 2: Fill template
       const outputDir = path.join(__dirname, "..", "outputs");
       const isPdfOutput = !!template_name;
@@ -116,7 +120,7 @@ router.post(
       if (isPdfOutput) {
         logStep(invoiceId, `Generating PDF using template name: ${template_name}`);
         // template_name is the logical name (without .ejs); pdfTemplater resolves it.
-        await generateInvoicePdf(extraction.data, template_name, outputPath);
+        await generateInvoicePdf(enrichedData, template_name, outputPath);
         logStep(invoiceId, "Generated PDF template successfully");
       } else if (formImage) {
         const isExcel = EXCEL_TYPES.includes(formImage.mimetype);
@@ -124,7 +128,7 @@ router.post(
         if (isExcel) {
           // Excel template: fill directly using label-matching (no AI needed)
           logStep(invoiceId, `Excel template detected: ${formImage.originalname}`);
-          await fillExcelTemplate(extraction.data, formImage.path, outputPath);
+          await fillExcelTemplate(enrichedData, formImage.path, outputPath);
           logStep(invoiceId, "Filled Excel template directly");
         } else {
           // Image or PDF template: AI reads layout → fills dynamically
@@ -142,18 +146,18 @@ router.post(
             });
           }
 
-          await fillDynamicTemplate(extraction.data, templateResult.structure, outputPath);
+          await fillDynamicTemplate(enrichedData, templateResult.structure, outputPath);
           logStep(invoiceId, "Filled dynamic template");
         }
       } else {
         // Default template
         logStep(invoiceId, "Filling default template...");
-        await fillDefaultTemplate(extraction.data, outputPath);
+        await fillDefaultTemplate(enrichedData, outputPath);
       }
 
       // Save JSON alongside Excel
       const jsonOutputPath = path.join(outputDir, `invoice_${invoiceId}.json`);
-      fs.writeFileSync(jsonOutputPath, JSON.stringify(extraction.data, null, 2));
+      fs.writeFileSync(jsonOutputPath, JSON.stringify(enrichedData, null, 2));
 
       // Cleanup uploaded files
       cleanupFile(rawInvoice.path);
@@ -212,6 +216,37 @@ router.get("/:id/download", (req, res) => {
 
   const filePath = path.join(outputDir, file);
   res.download(filePath, file);
+});
+
+/**
+ * GET /api/invoice/:id/pdf
+ * Stream filled PDF inline for preview (no forced download).
+ */
+router.get("/:id/pdf", (req, res) => {
+  const outputDir = path.join(__dirname, "..", "outputs");
+  const invoiceId = req.params.id;
+
+  const files = fs.readdirSync(outputDir);
+  const file = files.find(
+    (f) =>
+      f.startsWith(`invoice_${invoiceId}`) &&
+      f.endsWith(".pdf")
+  );
+
+  if (!file) {
+    return res
+      .status(404)
+      .send("PDF result not found for this invoice ID.");
+  }
+
+  const filePath = path.join(outputDir, file);
+  res.setHeader("Content-Type", "application/pdf");
+  // inline disposition lets browsers render in an <iframe>
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${file}"`
+  );
+  res.sendFile(filePath);
 });
 
 /**

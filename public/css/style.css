@@ -618,6 +618,23 @@ h1 {
   line-height: 1.5;
 }
 
+/* ===== PDF Preview on Result Page ===== */
+.pdf-preview-wrapper {
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: #e5e7eb;
+}
+
+.pdf-preview-frame {
+  width: 100%;
+  height: 700px;
+  border: none;
+  display: block;
+  background: #d1d5db;
+}
+
 /* ===== Provider Reference Table ===== */
 .provider-reference {
   margin-top: 2.5rem;
