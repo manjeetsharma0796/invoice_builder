@@ -124,11 +124,8 @@ function escapeHtml(str) {
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("invoiceForm");
   const rawInput = document.getElementById("rawInvoiceInput");
-  const formInput = document.getElementById("formImageInput");
   const rawBox = document.getElementById("rawInvoiceBox");
-  const formBox = document.getElementById("formImageBox");
   const rawFileName = document.getElementById("rawFileName");
-  const formFileName = document.getElementById("formFileName");
   const submitBtn = document.getElementById("submitBtn");
   const errorBox = document.getElementById("errorBox");
 
@@ -304,26 +301,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  formInput.addEventListener("change", () => {
-    if (formInput.files.length > 0) {
-      formFileName.textContent = formInput.files[0].name;
-      formBox.classList.add("has-file");
-    }
-  });
-
   // Drag & drop
-  [rawBox, formBox].forEach((box) => {
-    box.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      box.classList.add("dragover");
-    });
-    box.addEventListener("dragleave", () => {
-      box.classList.remove("dragover");
-    });
-    box.addEventListener("drop", (e) => {
-      e.preventDefault();
-      box.classList.remove("dragover");
-    });
+  rawBox.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    rawBox.classList.add("dragover");
+  });
+  rawBox.addEventListener("dragleave", () => {
+    rawBox.classList.remove("dragover");
+  });
+  rawBox.addEventListener("drop", (e) => {
+    e.preventDefault();
+    rawBox.classList.remove("dragover");
   });
 
   // Form submission
@@ -344,9 +332,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const formData = new FormData();
     formData.append("raw_invoice", rawInput.files[0]);
-    if (formInput.files.length > 0) {
-      formData.append("form_image", formInput.files[0]);
-    }
     if (templateSelect.value) {
       formData.append("template_name", templateSelect.value);
     }
