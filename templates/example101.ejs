@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - M.R. ELECTRICALS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            margin: 0;
+            padding: 10px;
+            color: #000;
+        }
+        .invoice-wrapper {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #000;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-bold { font-weight: bold; }
+        
+        .company-header {
+            position: relative;
+            padding: 15px 10px;
+            border-bottom: 1px solid #000;
+        }
+        .copy-label {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 10px;
+        }
+        .company-header h1 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+        .company-header div {
+            margin: 2px 0;
+        }
+
+        .tax-invoice-bar {
+            border-bottom: 1px solid #000;
+            padding: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid #000;
+        }
+        .info-left {
+            border-right: 1px solid #000;
+            padding: 5px;
+        }
+        .info-right {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-row {
+            display: flex;
+            border-bottom: 1px solid #000;
+            flex: 1;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-cell {
+            flex: 1;
+            padding: 3px;
+            border-right: 1px solid #000;
+            min-height: 30px;
+        }
+        .info-cell:last-child {
+            border-right: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: top;
+        }
+        .items-table th {
+            font-weight: normal;
+        }
+        .items-table td {
+            border-top: none;
+            border-bottom: none;
+        }
+        .items-table tr.total-row td {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+        .empty-item-row {
+            height: 250px;
+        }
+
+        .amount-words-section {
+            border-bottom: 1px solid #000;
+            padding: 5px;
+        }
+
+        .gst-table th {
+            font-weight: normal;
+            font-size: 10px;
+        }
+        .gst-table td {
+            text-align: center;
+        }
+
+        .footer-section {
+            display: flex;
+            border-top: 1px solid #000;
+        }
+        .bank-details {
+            flex: 1.5;
+            padding: 5px;
+            border-right: 1px solid #000;
+        }
+        .signatory-box {
+            flex: 1;
+            padding: 5px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .terms {
+            font-size: 9px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="invoice-wrapper">
+    <div class="company-header text-center">
+        <div class="copy-label">Original Buyer/Seller/Transporter</div>
+        <h1>M.R. ELECTRICALS</h1>
+        <div>91/1 G.S Bose Road Kolkata -700039</div>
+        <div>Phone No.-9831149296/9163659580.</div>
+        <div>GSTIN:19CIIPS8859M1ZZ. STATE CODE :WB19</div>
+    </div>
+
+    <div class="tax-invoice-bar">TAX INVOICE</div>
+
+    <div class="info-grid">
+        <div class="info-left">
+            <div>Customer</div>
+            <div class="text-bold"><%= client_name %></div>
+            <div><%- client_address %></div>
+            <div>PH :</div>
+            <div style="margin-left: 20px;">(M): 9903993225</div>
+            <div>PAN:</div>
+            <div>GSTIN/UIN:<%= client_gstin %></div>
+            <div>STATE NAME:<%= client_state %></div>
+            <div>Place of Supply:West Bengal</div>
+        </div>
+        <div class="info-right">
+            <div class="info-row">
+                <div class="info-cell">Invoice No:<span class="text-bold"><%= invoice_number %></span></div>
+                <div class="info-cell">Dated: <span class="text-bold"><%= invoice_date %></span></div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell">Delivery Note<br><%= delivery_note %></div>
+                <div class="info-cell">Mode/Terms of Payment</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell">Supplier's Ref<br><%= supplier_ref %></div>
+                <div class="info-cell">Other Reference(s)</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell">Buyer's Order No.<br><%= buyer_order_no %></div>
+                <div class="info-cell">Dated</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell">Despatch Document No.</div>
+                <div class="info-cell">Delivery Note Date</div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell">Despatch Through</div>
+                <div class="info-cell">Destination</div>
+            </div>
+            <div class="info-row" style="flex: 2;">
+                <div class="info-cell" style="border-right: none;">
+                    Terms of Delivery<br><%= terms_of_delivery %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 40px;">Sl No.</th>
+                <th>Descrpition of Goods</th>
+                <th style="width: 60px;">HSN/SAC</th>
+                <th style="width: 60px;">GST Rate</th>
+                <th style="width: 60px;">Quantity</th>
+                <th style="width: 70px;">Rate</th>
+                <th style="width: 30px;">per</th>
+                <th style="width: 40px;">Disc%</th>
+                <th style="width: 90px;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% (line_items || []).forEach(function(item) { %>
+            <tr>
+                <td class="text-center"><%= item.sl_no %></td>
+                <td>
+                    <div class="text-bold"><%= item.description %></div>
+                </td>
+                <td class="text-center"><%= item.hsn_sac %></td>
+                <td class="text-center"><%= item.gst_rate %></td>
+                <td class="text-center"><%= item.quantity %></td>
+                <td class="text-right"><%= item.rate %></td>
+                <td class="text-center"><%= item.per %></td>
+                <td class="text-right"><%= item.disc_percent %></td>
+                <td class="text-right text-bold"><%= item.amount %></td>
+            </tr>
+            <% }); %>
+            
+            <tr class="empty-item-row">
+                <td></td>
+                <td class="text-right" style="vertical-align: bottom;">
+                    <div style="padding-bottom: 2px;">SGST</div>
+                    <div style="padding-bottom: 2px;">CGST</div>
+                    <div>Round Off</div>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-right" style="vertical-align: bottom; padding: 0;">
+                    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px;"><%= sgst_amount %></div>
+                    <div style="border-bottom: 1px solid #000; padding: 4px;"><%= cgst_amount %></div>
+                    <div style="padding: 4px;"><%= round_off %></div>
+                </td>
+            </tr>
+
+            <tr class="total-row">
+                <td colspan="2" class="text-right text-bold">Total</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="text-right text-bold"><%= total_amount %></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="amount-words-section">
+        <div style="float: right;" class="text-bold">E.& O.E</div>
+        <div class="text-bold">Amount Chargeable(in words)</div>
+        <div class="text-bold">Rs. <%= amount_in_words %> Only.</div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <table class="gst-table">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 250px;">HSN/SAC</th>
+                <th rowspan="2">Taxable<br>Value</th>
+                <th colspan="2">Central Tax</th>
+                <th colspan="2">State Tax</th>
+                <th rowspan="2">Total<br>Tax Amount</th>
+            </tr>
+            <tr>
+                <th style="width: 40px;">Rate</th>
+                <th style="width: 80px;">Amount</th>
+                <th style="width: 40px;">Rate</th>
+                <th style="width: 80px;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% (hsn_summary || []).forEach(function(row) { %>
+            <tr>
+                <td class="text-left"><%= row.hsn_sac %></td>
+                <td class="text-right"><%= row.taxable_value %></td>
+                <td><%= row.cgst_rate %></td>
+                <td class="text-right"><%= row.cgst_amount %></td>
+                <td><%= row.sgst_rate %></td>
+                <td class="text-right"><%= row.sgst_amount %></td>
+                <td class="text-right"><%= row.total_tax %></td>
+            </tr>
+            <% }); %>
+            <tr class="text-bold">
+                <td class="text-right">Total</td>
+                <td class="text-right">13,000=00</td>
+                <td></td>
+                <td class="text-right">1170=00</td>
+                <td></td>
+                <td class="text-right">1170=00</td>
+                <td class="text-right">2340=00</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="padding: 5px; border-top: 1px solid #000;">
+        <span class="text-bold">Tax Amount (in words): </span>
+        <span class="text-bold"><%= tax_amount_in_words %> Only</span>
+    </div>
+
+    <div class="footer-section">
+        <div class="bank-details">
+            <div class="text-bold">Company Bank Details :</div>
+            <div style="margin-top: 5px;">
+                <div style="display: flex;"><span style="width: 110px;">Bank Name</span><span>: Bank Of India</span></div>
+                <div style="display: flex;"><span style="width: 110px;">Branch &IFSC Code</span><span>: TILJALA BKID0004046</span></div>
+                <div style="display: flex;"><span style="width: 110px;">A/c No.</span><span>: 404620110000213</span></div>
+            </div>
+        </div>
+        <div class="signatory-box">
+            <div class="text-bold">For M.R. ELECTRICALS</div>
+            <div style="margin-bottom: 5px;">Authorised Signatory</div>
+        </div>
+    </div>
+
+    <div class="terms">
+        (1)We are not responsibe for any Brekage/Damage/Shaortage/Leakage in transit.<br>
+        (2)Our responsibility ceases when the goods are delivered to the carrier.<br>
+        (3)Goods once sold will not be accepted back.<br>
+        (4)Interest @12% p.a. will be charged, if invoice is not paid on or before due date.<br>
+        (5)Subject to Kolkata Jurisdiction.
+    </div>
+</div>
+
+</body>
+</html>

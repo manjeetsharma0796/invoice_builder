@@ -19,7 +19,11 @@ function logStep(invoiceId, message) {
 
 // Multer config for file uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "..", "uploads")),
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "..", "uploads");
+    try { fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) { }
+    cb(null, uploadDir);
+  },
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
 });
 
@@ -113,6 +117,7 @@ router.post(
 
       // Step 2: Fill template
       const outputDir = path.join(__dirname, "..", "outputs");
+      try { fs.mkdirSync(outputDir, { recursive: true }); } catch (e) { }
       const isPdfOutput = !!template_name;
       const outputFilename = isPdfOutput ? `invoice_${invoiceId}.pdf` : `invoice_${invoiceId}.xlsx`;
       const outputPath = path.join(outputDir, outputFilename);

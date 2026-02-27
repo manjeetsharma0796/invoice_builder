@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const fs = require("fs");
 const path = require("path");
 
 const invoiceRoutes = require("./routes/invoice");
@@ -10,6 +11,16 @@ const viewRoutes = require("./routes/views");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Ensure runtime directories exist (Render/containers start from a clean FS)
+const UPLOADS_DIR = path.join(__dirname, "uploads");
+const OUTPUTS_DIR = path.join(__dirname, "outputs");
+try {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    fs.mkdirSync(OUTPUTS_DIR, { recursive: true });
+} catch (e) {
+    console.error("Failed to create runtime directories:", e.message);
+}
 
 // ===== Middleware =====
 app.use(express.json({ limit: "50mb" })); // Increased limit for image uploads

@@ -1,10 +1,9 @@
 const { ChatOpenAI } = require("@langchain/openai");
-const { ChatAnthropic } = require("@langchain/anthropic");
 const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const { ChatMistralAI } = require("@langchain/mistralai");
 
 // Runtime config — changed via API at runtime
-let activeProvider = process.env.ACTIVE_PROVIDER || "openai";
+const DEFAULT_PROVIDER = "google";
+let activeProvider = process.env.ACTIVE_PROVIDER || DEFAULT_PROVIDER;
 let activeModel = process.env.ACTIVE_MODEL || "gpt-4o";
 
 // Vision-capable model name patterns (used to guard image_url messages)
@@ -39,23 +38,6 @@ function isVisionCapable(model) {
 const LLM_TIMEOUT_MS = 90_000;
 
 const providers = {
-    // ====== Official Providers ======
-    openai: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: process.env.OPENAI_API_KEY,
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    anthropic: () =>
-        new ChatAnthropic({
-            model: activeModel,
-            anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
     // Google: maxRetries:0 because 429 quota-exhausted retries are pointless
     //         and cause the server to hang for minutes.
     google: () =>
@@ -65,67 +47,12 @@ const providers = {
             maxRetries: 0,
         }),
 
-    mistral: () =>
-        new ChatMistralAI({
-            model: activeModel,
-            apiKey: process.env.MISTRAL_API_KEY,
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    // ====== OpenAI-Compatible Providers ======
-    groq: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: process.env.GROQ_API_KEY,
-            configuration: { baseURL: "https://api.groq.com/openai/v1" },
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    deepseek: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: process.env.DEEPSEEK_API_KEY,
-            configuration: { baseURL: "https://api.deepseek.com/v1" },
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    together: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: process.env.TOGETHER_API_KEY,
-            configuration: { baseURL: "https://api.together.xyz/v1" },
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    openrouter: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: process.env.OPENROUTER_API_KEY,
-            configuration: { baseURL: "https://openrouter.ai/api/v1" },
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
+    // NVIDIA uses the OpenAI-compatible interface
     nvidia: () =>
         new ChatOpenAI({
             model: activeModel,
             apiKey: process.env.NVIDIA_API_KEY,
             configuration: { baseURL: "https://integrate.api.nvidia.com/v1" },
-            timeout: LLM_TIMEOUT_MS,
-            maxRetries: 1,
-        }),
-
-    ollama: () =>
-        new ChatOpenAI({
-            model: activeModel,
-            apiKey: "ollama",
-            configuration: {
-                baseURL: `${process.env.OLLAMA_BASE_URL || "http://localhost:11434"}/v1`,
-            },
             timeout: LLM_TIMEOUT_MS,
             maxRetries: 1,
         }),
@@ -137,9 +64,15 @@ const providers = {
 function getLLM() {
     const factory = providers[activeProvider];
     if (!factory) {
-        throw new Error(
-            `Unknown provider: "${activeProvider}". Available: ${Object.keys(providers).join(", ")}`
-        );
+        // Fallback to default provider if an invalid one is configured
+        const fallback = providers[DEFAULT_PROVIDER];
+        if (!fallback) {
+            throw new Error(
+                `Unknown provider: "${activeProvider}". Available: ${Object.keys(providers).join(", ")}`
+            );
+        }
+        activeProvider = DEFAULT_PROVIDER;
+        return fallback();
     }
     return factory();
 }

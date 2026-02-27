@@ -80,16 +80,8 @@ router.post("/test", async (req, res) => {
 /** Returns masked API key for the given provider */
 function getApiKey(provider) {
     const keyMap = {
-        openai: process.env.OPENAI_API_KEY,
-        anthropic: process.env.ANTHROPIC_API_KEY,
         google: process.env.GOOGLE_API_KEY,
-        mistral: process.env.MISTRAL_API_KEY,
-        groq: process.env.GROQ_API_KEY,
-        deepseek: process.env.DEEPSEEK_API_KEY,
-        together: process.env.TOGETHER_API_KEY,
-        openrouter: process.env.OPENROUTER_API_KEY,
         nvidia: process.env.NVIDIA_API_KEY,
-        ollama: "(no key needed)",
     };
     const key = keyMap[provider] || "(not set)";
     if (key.length > 10) return key.slice(0, 6) + "..." + key.slice(-4);

@@ -1,15 +1,7 @@
 // Model suggestions per provider
 const MODEL_SUGGESTIONS = {
-    openai: ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
-    anthropic: ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
     google: ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite", "gemini-3-flash-preview"],
-    mistral: ["mistral-large-latest", "mistral-small-latest", "mistral-medium-latest"],
-    groq: ["llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"],
-    deepseek: ["deepseek-chat", "deepseek-reasoner"],
-    together: ["meta-llama/Llama-3-70b-chat-hf", "mistralai/Mixtral-8x7B-Instruct-v0.1"],
-    openrouter: ["openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-2.5-flash"],
     nvidia: ["meta/llama-3.3-70b-instruct", "microsoft/phi-4", "deepseek-ai/deepseek-r1"],
-    ollama: ["llama3", "mistral", "qwen2.5", "phi3"],
 };
 
 document.addEventListener("DOMContentLoaded", async () => {

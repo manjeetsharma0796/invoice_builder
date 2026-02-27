@@ -10,7 +10,11 @@ const router = express.Router();
 
 // Configure multer for template reference images
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'uploads')),
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, '..', 'uploads');
+        try { fs.mkdirSync(uploadDir, { recursive: true }); } catch (e) { }
+        cb(null, uploadDir);
+    },
     filename: (req, file, cb) => cb(null, `TEMPLATE-${Date.now()}-${file.originalname}`),
 });
 
