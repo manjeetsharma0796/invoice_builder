@@ -4,3 +4,4 @@ outputs/*
 uploads/*
 !outputs/.gitkeep
 !uploads/.gitkeep
+.cache/
